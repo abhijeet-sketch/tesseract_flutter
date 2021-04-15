@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
+//
 class Tesseract {
   static const String TESS_DATA_CONFIG = 'assets/tessdata_config.json';
   static const String TESS_DATA_PATH = 'assets/tessdata';
