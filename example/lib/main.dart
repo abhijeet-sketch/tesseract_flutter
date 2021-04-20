@@ -1,4 +1,11 @@
 import 'dart:io';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'dart:ui';
+import 'package:flutter/services.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +23,9 @@ class _MyAppState extends State<MyApp> {
   bool _scanning = false;
   String _extractText = '';
   int _scanTime = 0;
+
+  static const String TESS_DATA_CONFIG = 'assets/tessdata_config.json';
+  static const String TESS_DATA_PATH = 'assets/tessdata';
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +47,13 @@ class _MyAppState extends State<MyApp> {
                         FilePickerResult result = await FilePicker.platform.pickFiles(type: FileType.image);
                         if (result != null) {
                           File file = File(result.files.single.path);
+                          String tessData = await _loadTessData();
                           _scanning = true;
+
                           setState(() {});
 
                           var watch = Stopwatch()..start();
-                          _extractText = await Tesseract.extractText(file.path);
+                          _extractText = (await Tesseract.extractText(file.path, tessData)).ocrText;
                           _scanTime = watch.elapsedMilliseconds;
 
                           _scanning = false;
@@ -74,5 +86,31 @@ class _MyAppState extends State<MyApp> {
             ),
           )),
     );
+  }
+
+  static Future<String> _loadTessData() async {
+    final Directory appDirectory = await getApplicationDocumentsDirectory();
+    final String tessdataDirectory = join(appDirectory.path, 'tessdata');
+
+    if (!await Directory(tessdataDirectory).exists()) {
+      await Directory(tessdataDirectory).create();
+    }
+    await _copyTessDataToAppDocumentsDirectory(tessdataDirectory);
+    return appDirectory.path;
+  }
+
+  static Future _copyTessDataToAppDocumentsDirectory(String tessdataDirectory) async {
+    final String config = await rootBundle.loadString(TESS_DATA_CONFIG);
+    Map<String, dynamic> files = jsonDecode(config);
+    for (var file in files["files"]) {
+      if (!await File('$tessdataDirectory/$file').exists()) {
+        final ByteData data = await rootBundle.load('$TESS_DATA_PATH/$file');
+        final Uint8List bytes = data.buffer.asUint8List(
+          data.offsetInBytes,
+          data.lengthInBytes,
+        );
+        await File('$tessdataDirectory/$file').writeAsBytes(bytes);
+      }
+    }
   }
 }

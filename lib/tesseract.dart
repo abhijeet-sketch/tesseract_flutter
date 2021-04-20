@@ -2,51 +2,48 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter/services.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 
 //
 class Tesseract {
-  static const String TESS_DATA_CONFIG = 'assets/tessdata_config.json';
-  static const String TESS_DATA_PATH = 'assets/tessdata';
   static const MethodChannel _channel = const MethodChannel('tesseract');
 
-  static Future<String> extractText(String imagePath, String tessDataParentDirectoryPath, {String language}) async {
+  static Future<TesseractResultModel> extractText(String imagePath, String tessDataParentDirectoryPath, {String language}) async {
     assert(await File(imagePath).exists(), true);
-    final String tessData = tessDataParentDirectoryPath; //await _loadTessData();
-    final String extractText = await _channel.invokeMethod('extractText', <String, dynamic>{
+    final String tessData = tessDataParentDirectoryPath;
+
+    var result = await _channel.invokeMethod('extractText', <String, dynamic>{
       'imagePath': imagePath,
       'tessData': tessData,
-      'language': language,
+      'language': "hin",
     });
-    return extractText;
-  }
 
-  static Future<String> _loadTessData() async {
-    final Directory appDirectory = await getApplicationDocumentsDirectory();
-    final String tessdataDirectory = join(appDirectory.path, 'tessdata');
+    List<Rect> rectList = [];
+    TesseractResultModel ocrResultModel;
+    if (result != null) {
+      result["TEXT_ELEMENT_RECT"].forEach((e) {
+        List<dynamic> coordinate = e;
+        Rect rect = new Rect.fromLTRB(coordinate[0].toDouble(), coordinate[1].toDouble(), coordinate[2].toDouble(), coordinate[3].toDouble());
+        rectList.add(rect);
+      });
 
-    if (!await Directory(tessdataDirectory).exists()) {
-      await Directory(tessdataDirectory).create();
+      ocrResultModel = TesseractResultModel(ocrText: result["TEXT"], textElementList: result["TEXT_ELEMENT"].cast<String>(), rectList: rectList);
     }
-    await _copyTessDataToAppDocumentsDirectory(tessdataDirectory);
-    return appDirectory.path;
-  }
 
-  static Future _copyTessDataToAppDocumentsDirectory(String tessdataDirectory) async {
-    final String config = await rootBundle.loadString(TESS_DATA_CONFIG);
-    Map<String, dynamic> files = jsonDecode(config);
-    for (var file in files["files"]) {
-      if (!await File('$tessdataDirectory/$file').exists()) {
-        final ByteData data = await rootBundle.load('$TESS_DATA_PATH/$file');
-        final Uint8List bytes = data.buffer.asUint8List(
-          data.offsetInBytes,
-          data.lengthInBytes,
-        );
-        await File('$tessdataDirectory/$file').writeAsBytes(bytes);
-      }
-    }
+    return ocrResultModel;
   }
+}
+
+class TesseractResultModel {
+  List<Rect> rectList;
+  List<String> textElementList;
+  String ocrText = "";
+
+  TesseractResultModel({
+    this.textElementList,
+    this.rectList,
+    this.ocrText,
+  });
 }
