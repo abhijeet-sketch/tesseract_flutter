@@ -16,6 +16,8 @@ import android.os.Looper;
 import android.graphics.Rect;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /** TesseractPlugin */
@@ -45,8 +47,8 @@ public class TesseractPlugin implements FlutterPlugin, MethodCallHandler {
       }
 
 //      ArrayList<Rect> rectArrayList=new ArrayList<Rect>();
-      ArrayList<ArrayList<Integer>> boundingRectList=new ArrayList<ArrayList<Integer>>();
-      ArrayList<String> ocrTextElement = new ArrayList<String>();
+      List<double[]> rectList=new ArrayList<>();
+      List<String> textElementList = new ArrayList<>();
 
       final String recognizedText;
       final File tempFile = new File(imagePath);
@@ -57,35 +59,24 @@ public class TesseractPlugin implements FlutterPlugin, MethodCallHandler {
       baseApi.setImage(tempFile);
       baseApi.getHOCRText(0);
 
-//      recognizedText = baseApi.getUTF8Text();
-
 
       ResultIterator iterator = baseApi.getResultIterator();
       iterator.begin();
       do {
         Rect rect=iterator.getBoundingRect(TessBaseAPI.PageIteratorLevel.RIL_WORD);
-        ArrayList<Integer> boundingRect=new ArrayList<Integer>();
-        boundingRect.add(rect.left);
-        boundingRect.add(rect.top);
-        boundingRect.add(rect.right);
-        boundingRect.add(rect.bottom);
-
-        boundingRectList.add(boundingRect);
-
-//        rectArrayList.add(iterator.getBoundingRect(TessBaseAPI.PageIteratorLevel.RIL_WORD));
-        ocrTextElement.add(iterator.getUTF8Text(TessBaseAPI.PageIteratorLevel.RIL_WORD));
+        rectList.add(new double[]{(double) rect.left,(double) rect.top,(double) rect.right,(double) rect.bottom});
+        textElementList.add(iterator.getUTF8Text(TessBaseAPI.PageIteratorLevel.RIL_WORD));
       } while (iterator.next(TessBaseAPI.PageIteratorLevel.RIL_WORD));
       iterator.delete();
-//      recognizedText = baseApi.getUTF8Text();
       recognizedText = baseApi.getUTF8Text();
       baseApi.stop();
-      HashMap<String,Object> dataMap = new HashMap<String,Object>();
-      if(ocrTextElement!=null&&boundingRectList!=null&&ocrTextElement.size()==boundingRectList.size()){
+      Map<String, Object> dataMap = new HashMap<>();
+      if(textElementList!=null&&rectList!=null&&textElementList.size()==rectList.size()){
 
-        for (int i = 0; i < ocrTextElement.size(); i++) {
+        for (int i = 0; i < textElementList.size(); i++) {
           dataMap.put("TEXT",recognizedText);
-          dataMap.put("TEXT_ELEMENT",ocrTextElement);
-          dataMap.put("TEXT_ELEMENT_RECT",boundingRectList);
+          dataMap.put("TEXT_ELEMENT",textElementList);
+          dataMap.put("TEXT_ELEMENT_RECT",rectList);
         }
       }
       result.success(dataMap);
