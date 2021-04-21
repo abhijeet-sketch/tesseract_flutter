@@ -41,6 +41,13 @@ class _MyAppState extends State<MyApp> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
+                    Expanded(
+                      child: TextButton(
+                          onPressed: () {
+                            print("tap");
+                          },
+                          child: Text("Click")),
+                    ),
                     RaisedButton(
                       child: Text('Select image'),
                       onPressed: () async {
@@ -53,7 +60,7 @@ class _MyAppState extends State<MyApp> {
                           setState(() {});
 
                           var watch = Stopwatch()..start();
-                          _extractText = (await Tesseract.extractText(file.path, tessData)).ocrText;
+                          _extractText = (await Tesseract.extractText(file.path, tessData, language: "hin")).ocrText;
                           _scanTime = watch.elapsedMilliseconds;
 
                           _scanning = false;
