@@ -60,7 +60,11 @@ class _MyAppState extends State<MyApp> {
                           setState(() {});
 
                           var watch = Stopwatch()..start();
-                          _extractText = (await Tesseract.extractText(file.path, tessData, language: "hin")).ocrText;
+                          TesseractResultModel tesseractResultModel;
+                          tesseractResultModel = await Tesseract.extractText(file.path, tessData, language: "hin");
+                          print("main dart ${tesseractResultModel.rectList}");
+                          print(tesseractResultModel.rectList.runtimeType);
+                          _extractText = tesseractResultModel.ocrText;
                           _scanTime = watch.elapsedMilliseconds;
 
                           _scanning = false;
@@ -70,7 +74,6 @@ class _MyAppState extends State<MyApp> {
                         }
                       },
                     ),
-                    // It doesn't spin, because scanning hangs thread for now
                     _scanning
                         ? SpinKitCircle(
                             color: Colors.black,

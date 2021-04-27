@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
-
 import 'package:flutter/services.dart';
 
-//
 class Tesseract {
   static const MethodChannel _channel = const MethodChannel('tesseract');
 
@@ -32,9 +30,6 @@ class Tesseract {
 
       ocrResultModel = TesseractResultModel(ocrText: data["TEXT"], textElementList: textElementList, rectList: rectList);
     }
-    print(rectList[0].runtimeType);
-    print(rectList[0].top);
-    print(textElementList.length);
     return ocrResultModel;
   }
 }

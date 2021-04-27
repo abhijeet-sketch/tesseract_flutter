@@ -23,10 +23,6 @@ import java.util.Map;
 
 /** TesseractPlugin */
 public class TesseractPlugin implements FlutterPlugin, MethodCallHandler {
-  /// The MethodChannel that will the communication between Flutter and native Android
-  ///
-  /// This local reference serves to register the plugin with the Flutter Engine and unregister it
-  /// when the Flutter Engine is detached from the Activity
   private MethodChannel channel;
   /** Plugin registration. */
   @Override
@@ -35,7 +31,6 @@ public class TesseractPlugin implements FlutterPlugin, MethodCallHandler {
     channel.setMethodCallHandler(this);
   }
 
-  // MethodChannel.Result wrapper that responds on the platform thread.
   private static class MethodResultWrapper implements Result {
     private Result methodResult;
     private Handler handler;
