@@ -51,9 +51,9 @@ class _MyAppState extends State<MyApp> {
                     RaisedButton(
                       child: Text('Select image'),
                       onPressed: () async {
-                        FilePickerResult result = await FilePicker.platform.pickFiles(type: FileType.image);
+                        FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
                         if (result != null) {
-                          File file = File(result.files.single.path);
+                          File file = File(result.files.single.path!);
                           String tessData = await _loadTessData();
                           _scanning = true;
 

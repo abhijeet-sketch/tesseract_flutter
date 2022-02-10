@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 class Tesseract {
   static const MethodChannel _channel = const MethodChannel('tesseract');
 
-  static Future<TesseractResultModel> extractText(String imagePath, String tessDataParentDirectoryPath, {String language}) async {
+  static Future<TesseractResultModel?> extractText(String imagePath, String tessDataParentDirectoryPath, {String? language}) async {
     assert(await File(imagePath).exists(), true);
     final String tessData = tessDataParentDirectoryPath;
     List<String> textElementList;
@@ -19,7 +19,7 @@ class Tesseract {
     });
     Map<String, dynamic> data = new Map<String, dynamic>.from(result);
     List<Rect> rectList = [];
-    TesseractResultModel ocrResultModel;
+    TesseractResultModel? ocrResultModel;
 
     if (data != null) {
       textElementList = List<dynamic>.unmodifiable(data["TEXT_ELEMENT"].map<dynamic>((text) => text)).cast<String>();
@@ -35,9 +35,9 @@ class Tesseract {
 }
 
 class TesseractResultModel {
-  List<Rect> rectList;
-  List<String> textElementList;
-  String ocrText = "";
+  List<Rect>? rectList;
+  List<String>? textElementList;
+  String? ocrText = "";
 
   TesseractResultModel({
     this.textElementList,
